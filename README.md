@@ -1,1 +1,1 @@
-# MH
+# MH Seven Princess Shop Project
