@@ -1,0 +1,3 @@
+# Maven/Eclipse generated build output
+**/target/
+*.class

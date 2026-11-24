@@ -1,6 +1,6 @@
 package com.sps.mail;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 //인증코드를 만들기위한 클래스
 public class FindUtil {
@@ -8,7 +8,7 @@ public class FindUtil {
 	//인증코드를 랜덤으로 생성하는 메소드
 	public static String createKey() throws Exception {
 	    StringBuffer key = new StringBuffer();
-	    Random rnd = new Random();
+	    SecureRandom rnd = new SecureRandom();
 
 	    for (int i = 0; i < 10; i++) {
 	    	int index = rnd.nextInt(3);
@@ -36,10 +36,11 @@ public class FindUtil {
 	                      'W', 'X', 'Y', 'Z', 
 	                      '!', '@', '#', '$', '%', '^', '&', '+', '=', '.'}; 
 	         
-	    StringBuffer newKey = new StringBuffer(); 
+	    StringBuffer newKey = new StringBuffer();
+        SecureRandom random = new SecureRandom(); 
 	        
 	    for (int i = 0; i < 10; i++) { 
-	        int idx = (int) (charSet.length * Math.random());
+	        int idx = random.nextInt(charSet.length);
 	        newKey.append(charSet[idx]); 
 	    } 
 	        

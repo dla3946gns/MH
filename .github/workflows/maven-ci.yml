@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '8'
+          java-version: '17'
       - name: Build and test
         working-directory: SevenPrincessShop
         env:
@@ -39,3 +39,27 @@ jobs:
           MH_CI_DB_USER: mh_ci
           MH_CI_DB_PASSWORD: ci-test-only
         run: mvn -B -ntp clean verify
+      - name: Tomcat 11 web smoke test
+        working-directory: SevenPrincessShop
+        env:
+          MH_DB_URL: 'jdbc:mysql://127.0.0.1:${{ job.services.mysql.ports[3306] }}/mh_ci?sslMode=DISABLED&allowPublicKeyRetrieval=true'
+          MH_DB_USER: mh_ci
+          MH_DB_PASSWORD: ci-test-only
+          MH_UPLOAD_DIR: /tmp/mh-uploads
+        run: |
+          set -eu
+          war="$(find target -maxdepth 1 -type f -name '*.war' -print -quit)"
+          test -n "$war"
+          docker run -d --name mh-web-smoke --network host \
+            -e MH_DB_URL -e MH_DB_USER -e MH_DB_PASSWORD -e MH_UPLOAD_DIR \
+            -v "$(realpath "$war"):/usr/local/tomcat/webapps/ROOT.war:ro" \
+            tomcat:11.0-jdk17-temurin
+          trap 'docker logs mh-web-smoke; docker rm -f mh-web-smoke' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -fsS --max-time 10 http://127.0.0.1:8080/goIndex -o /tmp/mh-index.html && grep -q 'SevenPrincessShop' /tmp/mh-index.html; then
+              echo "Spring MVC startup and JSP rendering verified"
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
