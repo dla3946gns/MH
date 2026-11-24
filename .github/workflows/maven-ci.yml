@@ -7,14 +7,35 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-only
+          MYSQL_DATABASE: mh_ci
+          MYSQL_USER: mh_ci
+          MYSQL_PASSWORD: ci-test-only
+        ports:
+          - 3306/tcp
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '8'
       - name: Build and test
         working-directory: SevenPrincessShop
+        env:
+          MH_CI_JDBC_URL: 'jdbc:mysql://127.0.0.1:${{ job.services.mysql.ports[3306] }}/mh_ci?sslMode=DISABLED&allowPublicKeyRetrieval=true'
+          MH_CI_DB_USER: mh_ci
+          MH_CI_DB_PASSWORD: ci-test-only
         run: mvn -B -ntp clean verify
