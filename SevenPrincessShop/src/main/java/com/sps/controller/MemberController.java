@@ -176,8 +176,8 @@ public String searchId(HttpServletRequest request, Model model, String target) {
 			a=2;
 			
 		
-	  	String api_key = "NCSPDUHGAWCUUPXC";
-	    String api_secret = "KLXUWMMFVE0Y1OYGXVFLAPK4BY0KDH75";
+	  	String api_key = com.sps.config.RuntimeConfig.require("MH_SMS_API_KEY");
+	    String api_secret = com.sps.config.RuntimeConfig.require("MH_SMS_API_SECRET");
 	    
 	    Message coolsms = new Message(api_key, api_secret);
 
